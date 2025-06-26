@@ -1,21 +1,10 @@
-import time
 import yfinance as yf
 import pandas as pd
 
+# Fetch data for Apple (AAPL) as a pandas.DataFrame object from 2015 to 2025
 ticker = "AAPL"
-retries = 3
+data = yf.download(ticker, start="2015-01-01", end="2025-06-24")
 
-for i in range(retries):
-    try:
-        data = yf.download(ticker, start="2015-01-01", end="2025-06-24", interval="1d", threads=False)
-        if data.empty:
-            raise ValueError("Download returned empty data.")
-        break
-    except Exception as e:
-        print(f"Attempt {i+1} failed: {e}")
-        time.sleep(10)  # wait 10 seconds before retrying
-else:
-    print("Download failed after multiple attempts.")
-    data = pd.DataFrame()  # so rest of script doesn't break
-
-print(data.head())
+# Save data in CSV format on disc for later use under this file name "{ticker}_stock_data.csv"
+data.to_csv(f"{ticker}_stock_data.csv")
+print(data.head(10))
