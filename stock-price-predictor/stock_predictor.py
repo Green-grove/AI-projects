@@ -1,7 +1,13 @@
 import yfinance as yf
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-# processing and storing stock data for linear regression model 
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+import matplotlib.pyplot as plt
+
+# import, proces and store stock data and train linear regression model 
 
 # Fetch data for Apple (AAPL) as a pandas.DataFrame object from 2015 to 2025
 ticker = "AAPL"
@@ -56,8 +62,21 @@ X_scaled = MinMaxScaler().fit_transform(X)
 # Remove last row from features to match length of y
 X_scaled = X_scaled[:-1]
 
-# Save data for 
+# Save data with assigned index labels from y (index=y.index) to the new DataFrame of feature. 
+# to keep the rows alignment consistent between your features X and your target y.
 pd.DataFrame(X_scaled, columns=["Close","MA7","MA30"], index=y.index).to_csv("preprocessed_data.csv")
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, shuffle=False
+)
+
+# Train Linear Regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Predict
+y_pred = model.predict(X_test)
 
 print("\n")
 print("First 5 lines of data:") # print 5 lines of the code
@@ -70,4 +89,20 @@ print("X")
 print(X)
 print("X.scaled")
 print(X_scaled)
+
+# Evaluate
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+mae = mean_absolute_error(y_test, y_pred)
+print(f"RMSE: {rmse:.2f}, MAE: {mae:.2f}")
+
+# Visualize results
+plt.figure(figsize=(10, 6))
+plt.plot(y_test.index, y_test, label="Actual")
+plt.plot(y_test.index, y_pred, label="Predicted")
+plt.title(f"{ticker} Stock Price Prediction")
+plt.xlabel("Date")
+plt.ylabel("Price")
+plt.legend()
+plt.savefig("prediction_plot.png")
+plt.show()
 
